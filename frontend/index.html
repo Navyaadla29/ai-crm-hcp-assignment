@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI CRM - HCP Module</title>
+    <style>
+        body { font-family: Arial; margin: 40px; background: #f5f8fa; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 30px; }
+        .tab { padding: 12px 24px; cursor: pointer; border: none; background: none; font-weight: 500; color: #666; }
+        .tab.active { border-bottom: 3px solid #007bff; color: #007bff; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        button { background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .chat-box { border: 1px solid #ddd; border-radius: 8px; height: 300px; padding: 15px; overflow-y: auto; margin-bottom: 20px; }
+        .message { margin-bottom: 10px; padding: 10px; border-radius: 8px; }
+        .user { background: #e3f2fd; text-align: right; }
+        .ai { background: #f5f5f5; }
+        .tool-demo { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; }
+        .success { background: #d4edda; color: #155724; padding: 15px; border-radius: 8px; }
+        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 AI-First CRM - HCP Interaction Module</h1>
+        <p>Backend running on: <strong>http://127.0.0.1:8001</strong></p>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('home')">🏠 Home</button>
+            <button class="tab" onclick="showTab('form')">📋 Form Logging</button>
+            <button class="tab" onclick="showTab('chat')">🤖 AI Chat</button>
+            <button class="tab" onclick="showTab('tools')">🛠️ 5 LangGraph Tools</button>
+            <button class="tab" onclick="showTab('api')">🔌 API Test</button>
+        </div>
+        
+        <!-- HOME TAB -->
+        <div id="home" class="tab-content">
+            <h2>Task 1: AI-First CRM HCP Module</h2>
+            <h3>Tech Stack:</h3>
+            <ul>
+                <li><strong>Frontend:</strong> HTML/JS (React simulation)</li>
+                <li><strong>Backend:</strong> FastAPI Python (Port 8001)</li>
+                <li><strong>AI Framework:</strong> LangGraph</li>
+                <li><strong>LLM:</strong> Groq (gemma2-9b-it) - API key configured</li>
+                <li><strong>Database:</strong> SQLite simulation</li>
+            </ul>
+            
+            <h3>✅ 5 LangGraph Tools Implemented:</h3>
+            <ol>
+                <li><strong>log_interaction_tool</strong> - Logs HCP meetings with AI summarization</li>
+                <li><strong>edit_interaction_tool</strong> - Modifies logged interactions</li>
+                <li><strong>search_hcp_tool</strong> - Searches HCP database</li>
+                <li><strong>schedule_followup_tool</strong> - Creates follow-up tasks</li>
+                <li><strong>extract_sentiment_tool</strong> - Analyzes sentiment using LLM</li>
+            </ol>
+            
+            <button onclick="testBackend()" style="background: #007bff;">Test Backend Connection</button>
+            <div id="backendStatus" style="margin-top: 20px;"></div>
+        </div>
+        
+        <!-- FORM VIEW -->
+        <div id="form" class="tab-content" style="display: none;">
+            <h3>Log HCP Interaction (Structured Form)</h3>
+            <div class="form-group">
+                <label>HCP Name</label>
+                <input type="text" id="hcpName" placeholder="Search or select HCP..." value="Dr. Sharma">
+            </div>
+            <div class="form-group">
+                <label>Interaction Type</label>
+                <select id="interactionType">
+                    <option>Meeting</option>
+                    <option>Call</option>
+                    <option>Email</option>
+                    <option>Event</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Date</label>
+                    <input type="date" id="date">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Time</label>
+                    <input type="time" id="time">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Topics Discussed</label>
+                <textarea id="topics" rows="3" placeholder="Enter key discussion points...">Discussed OncoBoost Phase III trial results and side effect management</textarea>
+            </div>
+            <div class="form-group">
+                <label>HCP Sentiment</label>
+                <select id="sentiment">
+                    <option>Positive</option>
+                    <option>Neutral</option>
+                    <option>Negative</option>
+                </select>
+            </div>
+            <button onclick="logInteraction()">✅ Log Interaction</button>
+            <div id="formResult" style="margin-top: 20px;"></div>
+        </div>
+        
+        <!-- CHAT VIEW -->
+        <div id="chat" class="tab-content" style="display: none;">
+            <h3>AI Chat Interface</h3>
+            <p>Conversational logging with LangGraph AI agent</p>
+            <div class="chat-box" id="chatMessages">
+                <div class="message ai">🤖 AI: Hello! Tell me about your HCP interaction. I'll log it for you.</div>
+            </div>
+            <div style="display: flex;">
+                <input type="text" id="chatInput" placeholder="Type your message..." style="flex: 1; margin-right: 10px;">
+                <button onclick="sendChat()">Send</button>
+            </div>
+            <div id="chatResult" style="margin-top: 20px;"></div>
+        </div>
+        
+        <!-- TOOLS VIEW -->
+        <div id="tools" class="tab-content" style="display: none;">
+            <h3>✅ 5 LangGraph Tools Demonstration</h3>
+            <div class="tool-demo">
+                <h4>1. Log Interaction Tool</h4>
+                <p>Captures HCP meeting data with AI summarization</p>
+                <button onclick="demoTool(1)">Test This Tool</button>
+                <div id="tool1Result"></div>
+            </div>
+            <div class="tool-demo">
+                <h4>2. Edit Interaction Tool</h4>
+                <p>Modifies existing logged interactions</p>
+                <button onclick="demoTool(2)">Test This Tool</button>
+                <div id="tool2Result"></div>
+            </div>
+            <div class="tool-demo">
+                <h4>3. Search HCP Tool</h4>
+                <p>Searches HCP database by name/specialty</p>
+                <button onclick="demoTool(3)">Test This Tool</button>
+                <div id="tool3Result"></div>
+            </div>
+            <div class="tool-demo">
+                <h4>4. Schedule Follow-up Tool</h4>
+                <p>Creates follow-up tasks and reminders</p>
+                <button onclick="demoTool(4)">Test This Tool</button>
+                <div id="tool4Result"></div>
+            </div>
+            <div class="tool-demo">
+                <h4>5. Extract Sentiment Tool</h4>
+                <p>Uses LLM to analyze HCP sentiment</p>
+                <button onclick="demoTool(5)">Test This Tool</button>
+                <div id="tool5Result"></div>
+            </div>
+            
+            <button onclick="testAllTools()" style="background: #6f42c1; margin-top: 20px;">Test All 5 Tools at Once</button>
+            <div id="allToolsResult" style="margin-top: 20px;"></div>
+        </div>
+        
+        <!-- API VIEW -->
+        <div id="api" class="tab-content" style="display: none;">
+            <h3>API Testing</h3>
+            <button onclick="testEndpoint('/')">Test Home</button>
+            <button onclick="testEndpoint('/health')">Test Health</button>
+            <button onclick="testEndpoint('/tools/demo')">Test All 5 Tools</button>
+            <button onclick="testEndpoint('/hcps')">Test HCP List</button>
+            <button onclick="testEndpoint('/interactions')">Test Interactions</button>
+            
+            <div id="apiResult" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; max-height: 300px; overflow-y: auto;"></div>
+            
+            <h4>API Endpoints:</h4>
+            <ul>
+                <li><code>GET /</code> - Home</li>
+                <li><code>GET /tools/demo</code> - All 5 tools demo</li>
+                <li><code>POST /log-interaction</code> - Log interaction</li>
+                <li><code>POST /chat</code> - Chat with AI</li>
+                <li><code>GET /health</code> - Health check</li>
+                <li><code>GET /hcps</code> - List HCPs</li>
+                <li><code>GET /interactions</code> - Get logged interactions</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // API URL - FIXED TO 127.0.0.1:8001
+        const API_URL = 'http://127.0.0.1:8001';
+        
+        // Set default date/time
+        window.onload = function() {
+            const now = new Date();
+            document.getElementById('date').value = now.toISOString().split('T')[0];
+            document.getElementById('time').value = now.toTimeString().slice(0,5);
+            testBackend(); // Auto-test on load
+        };
+
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            event.target.classList.add('active');
+            document.getElementById(tabName).style.display = 'block';
+        }
+
+        // Test backend connection
+        async function testBackend() {
+            const statusDiv = document.getElementById('backendStatus');
+            statusDiv.innerHTML = '<em>Testing backend connection...</em>';
+            
+            try {
+                const response = await fetch(`${API_URL}/`);
+                const data = await response.json();
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        ✅ <strong>Backend Connected!</strong><br>
+                        Message: ${data.message}<br>
+                        Status: ${data.status}<br>
+                        Version: ${data.version}
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="error">
+                        ❌ <strong>Backend Connection Failed!</strong><br>
+                        Error: ${error.message}<br>
+                        Make sure you ran: <code>python main.py</code> in backend/app folder
+                    </div>
+                `;
+            }
+        }
+
+        // Log interaction via form
+        async function logInteraction() {
+            const interaction = {
+                hcp_name: document.getElementById('hcpName').value,
+                interaction_type: document.getElementById('interactionType').value,
+                date: document.getElementById('date').value,
+                time: document.getElementById('time').value,
+                topics: document.getElementById('topics').value.split('\n').filter(t => t.trim()),
+                sentiment: document.getElementById('sentiment').value,
+                outcomes: "Logged via form",
+                follow_up_actions: "Follow up scheduled"
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/log-interaction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(interaction)
+                });
+                
+                const result = await response.json();
+                document.getElementById('formResult').innerHTML = `
+                    <div class="success">
+                        <strong>✅ Interaction Logged Successfully!</strong><br>
+                        ID: ${result.interaction_id}<br>
+                        Message: ${result.message}<br>
+                        <strong>🤖 AI Suggestions:</strong>
+                        <ul>${result.ai_suggestions.map(s => `<li>${s}</li>`).join('')}</ul>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('formResult').innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Chat functionality
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatBox = document.getElementById('chatMessages');
+            chatBox.innerHTML += `<div class="message user"><strong>You:</strong> ${message}</div>`;
+            
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const result = await response.json();
+                chatBox.innerHTML += `<div class="message ai"><strong>🤖 AI:</strong> ${result.response}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                
+                // Show extracted data if available
+                if (result.extracted_data) {
+                    document.getElementById('chatResult').innerHTML = `
+                        <div class="success">
+                            <strong>📊 Extracted Data:</strong><br>
+                            <pre>${JSON.stringify(result.extracted_data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                chatBox.innerHTML += `<div class="message ai"><strong>🤖 AI:</strong> Sorry, connection error: ${error.message}</div>`;
+            }
+            
+            input.value = '';
+        }
+
+        // Test individual LangGraph tools
+        async function demoTool(toolNumber) {
+            const resultDiv = document.getElementById(`tool${toolNumber}Result`);
+            resultDiv.innerHTML = '<em>Testing tool...</em>';
+            
+            try {
+                const response = await fetch(`${API_URL}/tools/demo`);
+                const data = await response.json();
+                
+                if (data.tools && data.tools[toolNumber-1]) {
+                    const tool = data.tools[toolNumber-1];
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ ${tool.tool} Tool Working!</strong><br>
+                            ${tool.description}<br>
+                            <strong>Result:</strong><br>
+                            <pre style="background: white; padding: 10px; overflow: auto;">${JSON.stringify(tool.result, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test all 5 tools at once
+        async function testAllTools() {
+            const resultDiv = document.getElementById('allToolsResult');
+            resultDiv.innerHTML = '<em>Testing all 5 LangGraph tools...</em>';
+            
+            try {
+                const response = await fetch(`${API_URL}/tools/demo`);
+                const data = await response.json();
+                
+                let html = '<h4>✅ All 5 Tools Test Results:</h4>';
+                data.tools.forEach((tool, index) => {
+                    html += `
+                        <div class="tool-demo">
+                            <strong>Tool ${index+1}: ${tool.tool}</strong><br>
+                            ${tool.description}<br>
+                            <pre style="background: white; padding: 10px; overflow: auto; max-height: 150px;">${JSON.stringify(tool.result, null, 2)}</pre>
+                        </div>
+                    `;
+                });
+                
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Error testing tools: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Test API endpoints
+        async function testEndpoint(endpoint) {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = `<em>Testing ${endpoint}...</em>`;
+            
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`);
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <strong>✅ ${endpoint} - Success!</strong><br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ ${endpoint} - Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
